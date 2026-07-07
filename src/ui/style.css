@@ -1,0 +1,150 @@
+/* Layout and effects only. Every color comes from the CSS variables that
+   ui/render.ts (applyPalette) fills from the active theme's palette —
+   no hardcoded colors in this file. */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: max(16px, env(safe-area-inset-top)) 12px 24px;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#app {
+  width: min(94vw, 480px);
+  position: relative;
+}
+
+.title {
+  margin: 0;
+  font-size: 28px;
+}
+
+.tagline {
+  margin: 4px 0 0;
+  font-size: 14px;
+  opacity: 0.75;
+}
+
+.hud {
+  display: flex;
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.stat {
+  flex: 1;
+  background: var(--cell);
+  border-radius: 12px;
+  padding: 8px 4px;
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.65;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.grid {
+  display: grid;
+  gap: 6px;
+  background: var(--board);
+  padding: 8px;
+  border-radius: 16px;
+  touch-action: manipulation;
+}
+
+.cell {
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 10px;
+  padding: 0;
+  background: var(--cell);
+  font-size: calc(min(94vw, 480px) / var(--cols) * 0.55);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.08s ease;
+}
+
+.cell:active {
+  transform: scale(0.9);
+}
+
+.cell.selected {
+  background: var(--cell-selected);
+  outline: 3px solid var(--accent);
+  outline-offset: -3px;
+}
+
+.cell.locked {
+  background: var(--cell-locked);
+  opacity: 0.55;
+}
+
+.cell.face-down {
+  background: var(--card-back);
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  border-radius: 16px;
+}
+
+.overlay-card {
+  background: var(--cell);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 320px;
+  text-align: center;
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--text) 25%, transparent);
+}
+
+.overlay-title {
+  margin: 0 0 8px;
+}
+
+.overlay-body {
+  margin: 0 0 16px;
+  opacity: 0.8;
+}
+
+.restart {
+  background: var(--accent);
+  color: var(--cell);
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
