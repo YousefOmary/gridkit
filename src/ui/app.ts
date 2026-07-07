@@ -14,6 +14,8 @@ import { activeTheme, themes } from '../theme';
 import type { GameTheme } from '../theme/theme';
 import { applyPalette, render } from './render';
 import { play, toggleMute } from './sound';
+import { showIntro, showToast } from './overlays';
+import { invalidHint } from './instructions';
 
 /** Resolve this session's theme: `?theme=<key>` dev override, else activeTheme. */
 function pickTheme(): GameTheme {
@@ -63,7 +65,12 @@ export async function startApp(root: HTMLElement): Promise<void> {
   engine.on('selected', (e) => { if (e.type === 'selected' && e.cell !== null) play('select'); });
   engine.on('matched', () => play('match'));
   engine.on('merged', () => play('merge'));
-  engine.on('invalid', () => { play('invalid'); shakeBoard(root); });
+  engine.on('invalid', () => {
+    play('invalid');
+    render(root, engine.getState(), theme); // clear the now-stale selection ring
+    shakeBoard(root);
+    showToast(root, invalidHint(theme.modeId));
+  });
   engine.on('status', (e) => { if (e.type === 'status') play(e.status === 'won' ? 'win' : 'lose'); });
 
   root.addEventListener('click', (event) => {
@@ -71,6 +78,10 @@ export async function startApp(root: HTMLElement): Promise<void> {
     const muteBtn = target.closest<HTMLElement>('[data-mute]');
     if (muteBtn !== null) {
       muteBtn.textContent = toggleMute() ? '🔇' : '🔊';
+      return;
+    }
+    if (target.closest('[data-help]') !== null) {
+      showIntro(root, theme);
       return;
     }
     const cell = target.closest<HTMLElement>('[data-cell]');
@@ -82,4 +93,15 @@ export async function startApp(root: HTMLElement): Promise<void> {
   });
 
   render(root, engine.getState(), theme);
+
+  // First-run: teach the rules once (per game). The help button reopens it.
+  const seenKey = `gridkit:seen:${theme.name}`;
+  try {
+    if (!localStorage.getItem(seenKey)) {
+      showIntro(root, theme);
+      localStorage.setItem(seenKey, '1');
+    }
+  } catch {
+    showIntro(root, theme);
+  }
 }

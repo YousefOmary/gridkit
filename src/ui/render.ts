@@ -21,6 +21,7 @@ export function render(root: HTMLElement, state: Readonly<GameState>, theme: Gam
   const gained = state.score > lastScore;
   root.innerHTML = '';
   root.append(
+    helpButton(),
     muteButton(),
     renderHeader(theme),
     renderHud(state, theme, gained),
@@ -51,6 +52,15 @@ function muteButton(): HTMLElement {
   button.dataset.mute = 'true';
   button.textContent = isMuted() ? '🔇' : '🔊';
   button.setAttribute('aria-label', 'Toggle sound');
+  return button;
+}
+
+function helpButton(): HTMLElement {
+  const button = document.createElement('button');
+  button.className = 'help';
+  button.dataset.help = 'true';
+  button.textContent = '?';
+  button.setAttribute('aria-label', 'How to play');
   return button;
 }
 

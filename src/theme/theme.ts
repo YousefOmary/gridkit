@@ -45,6 +45,9 @@ export interface ThemeText {
   playAgain: string;
   /** Glyph shown on face-down cells (memory mode; unused elsewhere). */
   cardBackGlyph: string;
+  /** Optional custom "how to play" text. Omit to use the per-mode default
+   * (see ui/instructions.ts) — so reskins get correct instructions for free. */
+  howTo?: string;
 }
 
 /** One complete, self-contained game definition. */
