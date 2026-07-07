@@ -6,6 +6,15 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no"
     />
+    <!-- Theme-color is overwritten at boot by ui/app.ts to match the active theme. -->
+    <meta name="theme-color" content="#ea580c" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <!-- Inline SVG favicon: a rounded tile with a sparkle — crisp at any size, no asset file. -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23ea580c'/%3E%3Crect x='10' y='10' width='44' height='44' rx='11' fill='%23fff7ed'/%3E%3Cpath d='M32 18l3.6 8.9L45 30l-9.4 3.1L32 42l-3.6-8.9L19 30l9.4-3.1z' fill='%23ea580c'/%3E%3C/svg%3E"
+    />
     <!-- Placeholder title only; ui/app.ts overwrites it with the theme name at boot. -->
     <title>GridKit</title>
   </head>

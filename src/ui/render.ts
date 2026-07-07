@@ -1,23 +1,37 @@
 /**
  * The render layer: pure state → DOM, rebuilt from scratch on every change.
- * No game logic lives here. Cells carry data-cell="<index>" and the restart
- * button carries data-restart, so ui/app.ts can drive everything with one
- * delegated click listener.
+ * No game logic lives here. Cells carry data-cell="<index>", the restart
+ * button data-restart, and the sound toggle data-mute, so ui/app.ts drives
+ * everything with one delegated click listener.
  */
 
 import { formatNumber } from '../engine/format';
 import type { GameState } from '../engine/types';
 import type { GameTheme } from '../theme/theme';
+import { isMuted } from './sound';
+
+/** Previous score, to animate the counter only when it actually grows. */
+let lastScore = 0;
+/** Cells fan in on the first paint only, not on every move (avoids flicker). */
+let firstPaint = true;
 
 /** Render the whole game (header, HUD, grid, end-of-game overlay) into `root`. */
 export function render(root: HTMLElement, state: Readonly<GameState>, theme: GameTheme): void {
   const emojiOf = new Map(theme.tiles.map((tile) => [tile.id, tile.emoji]));
+  const gained = state.score > lastScore;
   root.innerHTML = '';
-  root.append(renderHeader(theme), renderHud(state, theme), renderGrid(state, theme, emojiOf));
+  root.append(
+    muteButton(),
+    renderHeader(theme),
+    renderHud(state, theme, gained),
+    renderGrid(state, theme, emojiOf),
+  );
   if (state.status !== 'playing') root.append(renderOverlay(state, theme));
+  lastScore = state.score;
+  firstPaint = false;
 }
 
-/** Copy the theme palette into CSS custom properties (see ui/style.css). */
+/** Copy the theme palette into CSS custom properties + the browser theme-color. */
 export function applyPalette(theme: GameTheme): void {
   const style = document.documentElement.style;
   style.setProperty('--bg', theme.palette.background);
@@ -28,6 +42,16 @@ export function applyPalette(theme: GameTheme): void {
   style.setProperty('--card-back', theme.palette.cardBack);
   style.setProperty('--text', theme.palette.text);
   style.setProperty('--accent', theme.palette.accent);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme.palette.background);
+}
+
+function muteButton(): HTMLElement {
+  const button = document.createElement('button');
+  button.className = 'mute';
+  button.dataset.mute = 'true';
+  button.textContent = isMuted() ? '🔇' : '🔊';
+  button.setAttribute('aria-label', 'Toggle sound');
+  return button;
 }
 
 function renderHeader(theme: GameTheme): HTMLElement {
@@ -36,10 +60,12 @@ function renderHeader(theme: GameTheme): HTMLElement {
   return header;
 }
 
-function renderHud(state: Readonly<GameState>, theme: GameTheme): HTMLElement {
+function renderHud(state: Readonly<GameState>, theme: GameTheme, gained: boolean): HTMLElement {
   const hud = el('div', 'hud');
+  const scoreStat = stat(theme.text.scoreLabel, formatNumber(state.score));
+  if (gained) scoreStat.classList.add('bump');
   hud.append(
-    stat(theme.text.scoreLabel, formatNumber(state.score)),
+    scoreStat,
     stat(theme.text.movesLabel, String(Math.max(0, state.moveLimit - state.movesUsed))),
     stat(theme.text.goalLabel, goalText(state, theme)),
   );
@@ -66,6 +92,10 @@ function renderGrid(
     const button = document.createElement('button');
     button.className = 'cell';
     button.dataset.cell = String(i);
+    if (firstPaint) {
+      button.classList.add('intro');
+      button.style.setProperty('--i', String(i));
+    }
     if (i === state.selected) button.classList.add('selected');
     if (cell.locked) button.classList.add('locked');
     if (cell.tile !== null && !cell.faceUp) {

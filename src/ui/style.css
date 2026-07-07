@@ -1,6 +1,6 @@
-/* Layout and effects only. Every color comes from the CSS variables that
-   ui/render.ts (applyPalette) fills from the active theme's palette —
-   no hardcoded colors in this file. */
+/* Layout, depth and motion. Every hue derives from the CSS variables that
+   ui/render.ts (applyPalette) fills from the active theme — no hardcoded
+   theme colors here, so one stylesheet dresses every reskin. */
 
 * {
   box-sizing: border-box;
@@ -13,138 +13,265 @@ body {
 }
 
 body {
-  background: var(--bg);
+  /* Layered gradient: a soft accent glow over the theme background. */
+  background:
+    radial-gradient(120% 80% at 50% -10%, color-mix(in srgb, var(--accent) 22%, var(--bg)) 0%, var(--bg) 60%),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--text);
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: max(16px, env(safe-area-inset-top)) 12px 24px;
+  padding: max(20px, env(safe-area-inset-top)) 12px calc(24px + env(safe-area-inset-bottom));
   -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
 
 #app {
-  width: min(94vw, 480px);
+  width: min(94vw, 460px);
   position: relative;
+  animation: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* ---------- header ---------- */
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 18px;
 }
 
 .title {
   margin: 0;
-  font-size: 28px;
+  font-size: clamp(26px, 8vw, 34px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(180deg, var(--text), color-mix(in srgb, var(--text) 55%, var(--accent)));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .tagline {
   margin: 4px 0 0;
-  font-size: 14px;
-  opacity: 0.75;
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.7;
 }
 
+/* ---------- HUD ---------- */
 .hud {
   display: flex;
-  gap: 8px;
-  margin: 14px 0;
+  gap: 10px;
+  margin: 0 0 16px;
 }
 
 .stat {
   flex: 1;
-  background: var(--cell);
-  border-radius: 12px;
-  padding: 8px 4px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--cell) 92%, #fff), var(--cell));
+  border-radius: 16px;
+  padding: 10px 6px;
   text-align: center;
+  box-shadow:
+    0 2px 6px color-mix(in srgb, var(--text) 12%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 60%, transparent);
 }
 
 .stat-label {
-  font-size: 11px;
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  opacity: 0.65;
+  letter-spacing: 0.08em;
+  opacity: 0.6;
 }
 
 .stat-value {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 800;
+  margin-top: 2px;
+  color: color-mix(in srgb, var(--text) 78%, var(--accent));
 }
 
+.stat.bump .stat-value {
+  animation: bump 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+  color: var(--accent);
+}
+
+/* ---------- board & cells ---------- */
 .grid {
   display: grid;
-  gap: 6px;
-  background: var(--board);
-  padding: 8px;
-  border-radius: 16px;
+  gap: 7px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--board) 88%, #000), var(--board));
+  padding: 10px;
+  border-radius: 22px;
   touch-action: manipulation;
+  box-shadow:
+    0 12px 30px color-mix(in srgb, var(--text) 22%, transparent),
+    inset 0 2px 4px color-mix(in srgb, #000 18%, transparent);
+}
+
+.grid.shake {
+  animation: shake 0.34s cubic-bezier(0.36, 0.07, 0.19, 0.97);
 }
 
 .cell {
   aspect-ratio: 1;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 0;
-  background: var(--cell);
-  font-size: calc(min(94vw, 480px) / var(--cols) * 0.55);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--cell) 88%, #fff), var(--cell));
+  font-size: calc(min(94vw, 460px) / var(--cols) * 0.56);
   line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform 0.08s ease;
+  box-shadow:
+    0 2px 3px color-mix(in srgb, var(--text) 16%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 55%, transparent);
+  transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease;
+}
+
+/* First-paint fan-in only (ui/render.ts adds .intro + --i on the first render). */
+.cell.intro {
+  animation: pop 0.24s ease-out both;
+  animation-delay: calc(var(--i, 0) * 6ms);
 }
 
 .cell:active {
-  transform: scale(0.9);
+  transform: scale(0.88);
+  filter: brightness(0.96);
 }
 
 .cell.selected {
-  background: var(--cell-selected);
   outline: 3px solid var(--accent);
   outline-offset: -3px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--cell-selected) 85%, #fff), var(--cell-selected));
+  animation: pulse 0.9s ease-in-out infinite;
+  z-index: 1;
 }
 
 .cell.locked {
   background: var(--cell-locked);
-  opacity: 0.55;
+  opacity: 0.5;
+  box-shadow: none;
 }
 
 .cell.face-down {
-  background: var(--card-back);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--card-back) 82%, #fff), var(--card-back));
+  color: color-mix(in srgb, var(--text) 40%, var(--card-back));
 }
 
+/* ---------- end-of-game overlay ---------- */
 .overlay {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: color-mix(in srgb, var(--bg) 72%, transparent);
-  border-radius: 16px;
+  background: color-mix(in srgb, var(--bg) 60%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border-radius: 22px;
+  animation: fade 0.25s ease both;
 }
 
 .overlay-card {
-  background: var(--cell);
-  border-radius: 16px;
-  padding: 24px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--cell) 94%, #fff), var(--cell));
+  border-radius: 22px;
+  padding: 28px 26px;
   max-width: 320px;
   text-align: center;
-  box-shadow: 0 8px 32px color-mix(in srgb, var(--text) 25%, transparent);
+  box-shadow: 0 18px 50px color-mix(in srgb, var(--text) 35%, transparent);
+  animation: rise 0.35s cubic-bezier(0.2, 1.3, 0.4, 1) both;
 }
 
 .overlay-title {
   margin: 0 0 8px;
+  font-size: 26px;
+  font-weight: 800;
 }
 
 .overlay-body {
-  margin: 0 0 16px;
-  opacity: 0.8;
+  margin: 0 0 20px;
+  opacity: 0.75;
+  line-height: 1.5;
 }
 
 .restart {
-  background: var(--accent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 88%, #fff), var(--accent));
   color: var(--cell);
   border: none;
-  border-radius: 12px;
-  padding: 12px 24px;
+  border-radius: 14px;
+  padding: 14px 28px;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 45%, transparent);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.restart:active {
+  transform: translateY(2px) scale(0.98);
+  box-shadow: 0 3px 8px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+/* ---------- sound toggle ---------- */
+.mute {
+  position: absolute;
+  top: 2px;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--cell) 80%, transparent);
+  color: var(--text);
+  font-size: 18px;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: transform 0.1s ease;
+}
+
+.mute:active {
+  transform: scale(0.9);
+}
+
+/* ---------- keyframes ---------- */
+@keyframes pop {
+  from { transform: scale(0.82); opacity: 0.4; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+@keyframes bump {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+@keyframes shake {
+  10%, 90% { transform: translateX(-2px); }
+  20%, 80% { transform: translateX(4px); }
+  30%, 50%, 70% { transform: translateX(-7px); }
+  40%, 60% { transform: translateX(7px); }
+}
+@keyframes rise {
+  from { transform: translateY(14px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }
